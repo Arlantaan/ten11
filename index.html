@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a08">
+<title>Menu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<!--
+  Editorial layout: one long scroll that reads like a printed bar list.
+  Served at / instead of index.html when a restaurant's `layout` setting is
+  "editorial" (see app/main.py). Colours come from the restaurant's theme;
+  the typography is this layout's own.
+-->
+<style>
+  :root {
+    --bg: #0a0a08; --bg-rgb: 10,10,8;
+    --ink: #f3f0e6; --ink-rgb: 243,240,230;
+    --muted: #8c877a;
+    --accent: #cac84c; --accent-rgb: 202,200,76;
+    --serif: 'Cormorant Garamond', Georgia, serif;
+    --sans: 'Montserrat', system-ui, sans-serif;
+    --bar-h: 52px;
+    --gutter: 20px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: var(--sans); font-weight: 300; line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+
+  /* ── Masthead ─────────────────────────────────────────── */
+  .masthead {
+    position: relative; text-align: center;
+    padding: calc(56px + env(safe-area-inset-top)) var(--gutter) 40px;
+    overflow: hidden;
+  }
+  .masthead::before {
+    content: ""; position: absolute; inset: -20% -30% auto; height: 120%;
+    background: radial-gradient(closest-side, rgba(var(--accent-rgb), 0.13), transparent 70%);
+    pointer-events: none;
+  }
+  .logo { position: relative; display: block; margin: 0 auto; width: min(78vw, 340px); height: auto; }
+  .wordmark {
+    position: relative; font-family: var(--serif); font-weight: 600;
+    font-size: clamp(2.6rem, 12vw, 4.2rem); letter-spacing: 0.04em; margin: 0; color: var(--accent);
+  }
+  .tagline {
+    position: relative; margin: 28px 0 0; font-size: 0.72rem; font-weight: 500;
+    letter-spacing: 0.42em; text-transform: uppercase; color: var(--accent);
+  }
+  .hours {
+    position: relative; margin: 10px 0 0; font-size: 0.72rem;
+    letter-spacing: 0.24em; text-transform: uppercase; color: var(--muted);
+  }
+  .rule { width: 56px; height: 1px; margin: 30px auto 0; background: rgba(var(--accent-rgb), 0.6); border: 0; }
+
+  /* ── Sticky category bar ──────────────────────────────── */
+  .bar {
+    position: sticky; top: 0; z-index: 10; height: var(--bar-h);
+    display: flex; align-items: center;
+    background: rgba(var(--bg-rgb), 0.9);
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    border-top: 1px solid rgba(var(--ink-rgb), 0.07);
+    border-bottom: 1px solid rgba(var(--ink-rgb), 0.07);
+  }
+  .cats {
+    flex: 1; display: flex; gap: 26px; overflow-x: auto; height: 100%;
+    padding: 0 var(--gutter); scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 28px), transparent);
+            mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 28px), transparent);
+  }
+  .cats::-webkit-scrollbar { display: none; }
+  .cats a {
+    flex: none; display: flex; align-items: center; position: relative;
+    font-size: 0.68rem; font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase;
+    text-decoration: none; color: var(--muted); white-space: nowrap; transition: color .2s;
+  }
+  .cats a.active { color: var(--ink); }
+  .cats a.active::after {
+    content: ""; position: absolute; left: 0; right: 0.22em; bottom: 12px; height: 1px; background: var(--accent);
+  }
+  .search-btn {
+    flex: none; width: var(--bar-h); height: var(--bar-h); border: 0; background: none;
+    color: var(--muted); cursor: pointer; display: grid; place-items: center;
+    border-left: 1px solid rgba(var(--ink-rgb), 0.07);
+  }
+  .search-btn:hover, .search-btn[aria-expanded="true"] { color: var(--accent); }
+  .search {
+    display: none; position: sticky; top: var(--bar-h); z-index: 9;
+    padding: 12px var(--gutter); background: var(--bg);
+    border-bottom: 1px solid rgba(var(--ink-rgb), 0.07);
+  }
+  .search.open { display: block; }
+  .search input {
+    width: 100%; background: transparent; border: 0; border-bottom: 1px solid rgba(var(--accent-rgb), 0.5);
+    color: var(--ink); font: 400 1rem var(--sans); padding: 8px 0; outline: none; border-radius: 0;
+  }
+  .search input::placeholder { color: var(--muted); font-weight: 300; }
+  .search input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+
+  /* ── Menu ─────────────────────────────────────────────── */
+  main { max-width: 720px; margin: 0 auto; padding: 8px var(--gutter) 40px; }
+  .section { padding-top: 56px; scroll-margin-top: calc(var(--bar-h) + 4px); }
+  .section-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 30px; }
+  .section-no { font-family: var(--serif); font-style: italic; font-size: 1.05rem; color: var(--accent); }
+  .section-title {
+    margin: 0; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.34em; text-transform: uppercase;
+  }
+  .section-head::after { content: ""; flex: 1; height: 1px; background: rgba(var(--ink-rgb), 0.12); transform: translateY(-4px); }
+
+  .item { padding: 14px 0 16px; display: flex; gap: 16px; }
+  .item + .item { border-top: 1px solid rgba(var(--ink-rgb), 0.05); }
+  .item-body { flex: 1; min-width: 0; }
+  .item-thumb { flex: none; width: 64px; height: 64px; border-radius: 50%; object-fit: cover; margin-top: 4px; }
+  .line { display: flex; align-items: baseline; gap: 10px; }
+  .name {
+    font-variant-numeric: lining-nums;
+    font-family: var(--serif); font-weight: 600; font-size: 1.32rem; line-height: 1.2; letter-spacing: 0.01em;
+  }
+  .leader { flex: 1; min-width: 24px; border-bottom: 1px dotted rgba(var(--ink-rgb), 0.28); transform: translateY(-5px); }
+  .price {
+    flex: none; font-size: 0.9rem; font-weight: 500; letter-spacing: 0.06em; color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  .price.text { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 1rem; letter-spacing: 0; }
+  .desc { margin: 6px 0 0; font-size: 0.84rem; color: var(--muted); max-width: 34em; }
+  .tag {
+    display: inline-block; margin-top: 9px; font-size: 0.6rem; font-weight: 600;
+    letter-spacing: 0.26em; text-transform: uppercase; color: var(--accent);
+  }
+  .tag::before { content: "— "; letter-spacing: 0; }
+  .item.soon .name, .item.soon .desc { opacity: 0.45; }
+
+  .empty { text-align: center; color: var(--muted); padding: 80px 0; font-size: 0.85rem; letter-spacing: 0.1em; }
+
+  /* ── Footer ───────────────────────────────────────────── */
+  footer { text-align: center; padding: 64px var(--gutter) calc(48px + env(safe-area-inset-bottom)); border-top: 1px solid rgba(var(--ink-rgb), 0.07); margin-top: 40px; }
+  .about { font-variant-numeric: lining-nums; max-width: 30em; margin: 0 auto; font-family: var(--serif); font-style: italic; font-size: 1.15rem; line-height: 1.6; color: rgba(var(--ink-rgb), 0.78); }
+  .contact { margin-top: 28px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 22px; font-size: 0.68rem; letter-spacing: 0.24em; text-transform: uppercase; }
+  .contact a { color: var(--accent); text-decoration: none; }
+  .credit { margin-top: 44px; font-size: 0.6rem; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(var(--ink-rgb), 0.25); }
+  .credit a { text-decoration: none; }
+
+  /* Gentle entrance, skipped for people who ask for less motion */
+  .reveal { opacity: 0; transform: translateY(14px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .reveal { opacity: 1; transform: none; transition: none; }
+  }
+  @media (min-width: 720px) {
+    :root { --gutter: 32px; }
+    .name { font-size: 1.45rem; }
+    .cats { justify-content: center; }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div id="brand"></div>
+  <p class="tagline" id="tagline"></p>
+  <p class="hours" id="hours"></p>
+  <hr class="rule">
+</header>
+
+<nav class="bar" aria-label="Menu sections">
+  <div class="cats" id="cats"></div>
+  <button type="button" class="search-btn" id="searchBtn" aria-label="Search the menu" aria-expanded="false" aria-controls="search">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+  </button>
+</nav>
+<div class="search" id="search"><input type="search" id="q" placeholder="Search drinks, shisha, bites…" autocomplete="off" aria-label="Search"></div>
+
+<main id="menu"><p class="empty">Loading the menu…</p></main>
+
+<footer id="footer"></footer>
+
+<script>window.MENU_SNAPSHOT = {"site": {"restaurant": {"slug": "ten11", "name": "Ten 11", "url": "http://ten11.localhost:8000"}, "features": {"menu": true, "gallery": false, "reservations": false, "ordering": false, "customer_accounts": false, "staff": false, "custom_theme": false, "hide_branding": false}, "settings": {"about_description": "Ten 11 is where the evening slows down and the night comes alive. Rare spirits poured with ceremony, cocktails composed like couture, and the finest shisha in the city — served in velvet, gold and low light.", "cover_tagline": "Cocktails · Coffee · Shisha", "email": "", "facebook": "", "hours_close": "03:00", "hours_open": "18:00", "instagram": "", "layout": "editorial", "logo": "logo.png", "maps_url": "", "phone": "", "theme": "{\"preset\": \"lounge\", \"accent\": \"#cac84c\"}", "tiktok": "", "whatsapp": ""}, "theme": {"preset": "lounge", "name": "Lounge", "mode": "dark", "accent": "#cac84c", "custom_accent": true, "google_fonts": ["Kaushan+Script", "Poppins:wght@300;400;500;600;700"], "variables": {"--bg": "#090907", "--bg-rgb": "9,9,7", "--surface": "#111111", "--surface-2": "#1a1a1a", "--ink": "#f8f6f0", "--ink-rgb": "248,246,240", "--muted": "#95897b", "--accent": "#cac84c", "--accent-rgb": "202,200,76", "--accent-bright": "#d4d26c", "--accent-ink": "#000000", "--radius": "10px", "--font-heading": "'Kaushan Script', cursive", "--font-body": "'Poppins', sans-serif", "--bg-texture": "none"}, "custom_css": ""}, "google_client_id": ""}, "sections": [{"key": "signatures", "label": "Signature Cocktails", "icon": "fa-martini-glass-citrus", "ornament": true, "sort_order": 1}, {"key": "classics", "label": "Classics, Reimagined", "icon": "fa-martini-glass", "ornament": false, "sort_order": 2}, {"key": "champagne", "label": "Champagne & Sparkling", "icon": "fa-champagne-glasses", "ornament": true, "sort_order": 3}, {"key": "brown", "label": "Cognac & Whisky", "icon": "fa-whiskey-glass", "ornament": false, "sort_order": 4}, {"key": "spirits", "label": "Vodka, Gin & Agave", "icon": "fa-wine-bottle", "ornament": false, "sort_order": 5}, {"key": "bottles", "label": "Bottle Service", "icon": "fa-crown", "ornament": true, "sort_order": 6}, {"key": "shisha", "label": "The Shisha Salon", "icon": "fa-wind", "ornament": true, "sort_order": 7}, {"key": "cafe", "label": "Coffee & Bites", "icon": "fa-mug-hot", "ornament": true, "sort_order": 8}, {"key": "zero", "label": "Zero Proof", "icon": "fa-leaf", "ornament": false, "sort_order": 9}], "menu": [{"id": "ten11-040", "section": "bottles", "name": "The Eleven", "description": "Any premium vodka or gin bottle, four mixers, fresh fruit platter and reserved lounge seating.", "price": "6500", "image": null, "hidden": 0, "sort_order": 40, "insert_after": null, "badge": ""}, {"id": "ten11-041", "section": "bottles", "name": "The Gold Hour", "description": "Hennessy VSOP, a bottle of Moët Impérial, mixers, fruit platter and a signature shisha.", "price": "14500", "image": null, "hidden": 0, "sort_order": 41, "insert_after": null, "badge": "popular"}, {"id": "ten11-042", "section": "bottles", "name": "The Crown", "description": "Hennessy XO, Dom Pérignon, two signature shishas, fruit and chocolate platter, a private host and the best table in the house.", "price": "45000", "image": null, "hidden": 0, "sort_order": 42, "insert_after": null, "badge": ""}, {"id": "ten11-043", "section": "bottles", "name": "Birthday Ceremony", "description": "A bottle of your choice arrives with sparklers, a personalised board and the lights down. Just tell your host.", "price": "Ask your host", "image": null, "hidden": 0, "sort_order": 43, "insert_after": null, "badge": ""}, {"id": "ten11-023", "section": "brown", "name": "Hennessy VS", "description": "Glass 50ml · Bottle 70cl D4,500", "price": "400", "image": null, "hidden": 0, "sort_order": 23, "insert_after": null, "badge": ""}, {"id": "ten11-024", "section": "brown", "name": "Hennessy VSOP", "description": "Glass 50ml · Bottle 70cl D6,500", "price": "550", "image": null, "hidden": 0, "sort_order": 24, "insert_after": null, "badge": ""}, {"id": "ten11-025", "section": "brown", "name": "Hennessy XO", "description": "Glass 50ml · Bottle 70cl D18,000", "price": "1500", "image": null, "hidden": 0, "sort_order": 25, "insert_after": null, "badge": "popular"}, {"id": "ten11-026", "section": "brown", "name": "Rémy Martin XO", "description": "Glass 50ml · Bottle 70cl D17,000", "price": "1400", "image": null, "hidden": 0, "sort_order": 26, "insert_after": null, "badge": ""}, {"id": "ten11-027", "section": "brown", "name": "Johnnie Walker Black Label", "description": "Glass 50ml · Bottle 70cl D3,500", "price": "350", "image": null, "hidden": 0, "sort_order": 27, "insert_after": null, "badge": ""}, {"id": "ten11-028", "section": "brown", "name": "Johnnie Walker Blue Label", "description": "Glass 50ml · Bottle 70cl D20,000", "price": "1800", "image": null, "hidden": 0, "sort_order": 28, "insert_after": null, "badge": ""}, {"id": "ten11-029", "section": "brown", "name": "The Macallan 12 Double Cask", "description": "Glass 50ml · Bottle 70cl D9,500", "price": "850", "image": null, "hidden": 0, "sort_order": 29, "insert_after": null, "badge": ""}, {"id": "ten11-030", "section": "brown", "name": "Glenfiddich 18", "description": "Glass 50ml · Bottle 70cl D11,000", "price": "950", "image": null, "hidden": 0, "sort_order": 30, "insert_after": null, "badge": ""}, {"id": "ten11-031", "section": "brown", "name": "Jack Daniel's Single Barrel", "description": "Glass 50ml · Bottle 70cl D5,500", "price": "500", "image": null, "hidden": 0, "sort_order": 31, "insert_after": null, "badge": ""}, {"id": "ten11-052", "section": "cafe", "name": "Espresso Noir", "description": "A double shot, dark and velvety. Served with a square of dark chocolate.", "price": "200", "image": null, "hidden": 0, "sort_order": 52, "insert_after": null, "badge": ""}, {"id": "ten11-053", "section": "cafe", "name": "Cappuccino", "description": "Silky microfoam, cocoa dust.", "price": "250", "image": null, "hidden": 0, "sort_order": 53, "insert_after": null, "badge": ""}, {"id": "ten11-054", "section": "cafe", "name": "Iced Caramel Latte", "description": "Espresso, cold milk and salted caramel over ice.", "price": "300", "image": null, "hidden": 0, "sort_order": 54, "insert_after": null, "badge": "popular"}, {"id": "ten11-055", "section": "cafe", "name": "Ten 11 Irish Coffee", "description": "Irish whiskey, hot coffee, brown sugar and a thick cream float.", "price": "500", "image": null, "hidden": 0, "sort_order": 55, "insert_after": null, "badge": ""}, {"id": "ten11-056", "section": "cafe", "name": "Espresso Affogato", "description": "Vanilla ice cream drowned in a hot shot of espresso.", "price": "350", "image": null, "hidden": 0, "sort_order": 56, "insert_after": null, "badge": ""}, {"id": "ten11-057", "section": "cafe", "name": "Truffle & Parmesan Popcorn", "description": "Freshly popped, tossed in truffle oil and aged parmesan.", "price": "300", "image": null, "hidden": 0, "sort_order": 57, "insert_after": null, "badge": "new"}, {"id": "ten11-058", "section": "cafe", "name": "Salted Caramel Popcorn", "description": "Glossy house caramel with a pinch of sea salt.", "price": "250", "image": null, "hidden": 0, "sort_order": 58, "insert_after": null, "badge": ""}, {"id": "ten11-059", "section": "cafe", "name": "Loaded Fries", "description": "Crisp fries, cheese sauce, spring onion and chilli.", "price": "350", "image": null, "hidden": 0, "sort_order": 59, "insert_after": null, "badge": ""}, {"id": "ten11-060", "section": "cafe", "name": "Chicken Wings", "description": "Six wings in honey-chilli or smoky BBQ glaze.", "price": "450", "image": null, "hidden": 0, "sort_order": 60, "insert_after": null, "badge": ""}, {"id": "ten11-016", "section": "champagne", "name": "Moët & Chandon Impérial Brut", "description": "Bottle · 75cl. Bright fruit, elegant maturity.", "price": "6500", "image": null, "hidden": 0, "sort_order": 16, "insert_after": null, "badge": ""}, {"id": "ten11-017", "section": "champagne", "name": "Moët & Chandon Nectar Impérial Rosé", "description": "Bottle · 75cl. Rich, fruity, generous.", "price": "7500", "image": null, "hidden": 0, "sort_order": 17, "insert_after": null, "badge": ""}, {"id": "ten11-018", "section": "champagne", "name": "Veuve Clicquot Yellow Label", "description": "Bottle · 75cl. The iconic toasty, full-bodied brut.", "price": "7500", "image": null, "hidden": 0, "sort_order": 18, "insert_after": null, "badge": "popular"}, {"id": "ten11-019", "section": "champagne", "name": "Laurent-Perrier Cuvée Rosé", "description": "Bottle · 75cl. Fresh red berries, the rosé of choice.", "price": "9500", "image": null, "hidden": 0, "sort_order": 19, "insert_after": null, "badge": ""}, {"id": "ten11-020", "section": "champagne", "name": "Dom Pérignon Vintage", "description": "Bottle · 75cl. Served with sparklers and ceremony.", "price": "25000", "image": null, "hidden": 0, "sort_order": 20, "insert_after": null, "badge": "limited"}, {"id": "ten11-021", "section": "champagne", "name": "Armand de Brignac Ace of Spades", "description": "Bottle · 75cl. The gold bottle. Presented tableside.", "price": "45000", "image": null, "hidden": 0, "sort_order": 21, "insert_after": null, "badge": ""}, {"id": "ten11-022", "section": "champagne", "name": "Prosecco by the Glass", "description": "Glass · crisp Italian sparkling.", "price": "450", "image": null, "hidden": 0, "sort_order": 22, "insert_after": null, "badge": ""}, {"id": "ten11-009", "section": "classics", "name": "Smoked Old Fashioned", "description": "Bourbon, demerara and aromatic bitters, smoked tableside under a glass cloche with oak chips.", "price": "700", "image": null, "hidden": 0, "sort_order": 9, "insert_after": null, "badge": "popular"}, {"id": "ten11-010", "section": "classics", "name": "Espresso Martini", "description": "Vodka, fresh espresso and coffee liqueur, shaken hard for a thick crema.", "price": "600", "image": null, "hidden": 0, "sort_order": 10, "insert_after": null, "badge": ""}, {"id": "ten11-011", "section": "classics", "name": "Negroni Riserva", "description": "Barrel-rested gin, Campari and sweet vermouth, stirred and poured over clear ice.", "price": "600", "image": null, "hidden": 0, "sort_order": 11, "insert_after": null, "badge": ""}, {"id": "ten11-012", "section": "classics", "name": "Passion Fruit Martini", "description": "Vanilla vodka and fresh passion fruit, served with a sidecar of chilled prosecco.", "price": "600", "image": null, "hidden": 0, "sort_order": 12, "insert_after": null, "badge": ""}, {"id": "ten11-013", "section": "classics", "name": "Mojito Royale", "description": "White rum, fresh mint, lime and cane sugar, topped with champagne.", "price": "650", "image": null, "hidden": 0, "sort_order": 13, "insert_after": null, "badge": ""}, {"id": "ten11-014", "section": "classics", "name": "Margarita de Oro", "description": "Reposado tequila, Grand Marnier and fresh lime, with a gold-salted rim.", "price": "650", "image": null, "hidden": 0, "sort_order": 14, "insert_after": null, "badge": ""}, {"id": "ten11-015", "section": "classics", "name": "Cosmopolitan", "description": "Citrus vodka, Cointreau, cranberry and lime. Timeless.", "price": "550", "image": null, "hidden": 0, "sort_order": 15, "insert_after": null, "badge": ""}, {"id": "ten11-044", "section": "shisha", "name": "Ten 11 Signature", "description": "Our secret house blend of double apple, mint and a touch of vanilla, on a fresh pineapple head.", "price": "1800", "image": null, "hidden": 0, "sort_order": 44, "insert_after": null, "badge": "popular"}, {"id": "ten11-045", "section": "shisha", "name": "Blue Mist", "description": "Blueberry and fresh mint. Cool, smooth, a crowd favourite.", "price": "1200", "image": null, "hidden": 0, "sort_order": 45, "insert_after": null, "badge": ""}, {"id": "ten11-046", "section": "shisha", "name": "Love 66", "description": "Passion fruit, honeydew, watermelon and mint.", "price": "1200", "image": null, "hidden": 0, "sort_order": 46, "insert_after": null, "badge": ""}, {"id": "ten11-047", "section": "shisha", "name": "Lady Killer", "description": "Mango, berries, melon and a cool mint finish.", "price": "1200", "image": null, "hidden": 0, "sort_order": 47, "insert_after": null, "badge": ""}, {"id": "ten11-048", "section": "shisha", "name": "Golden Double Apple", "description": "The classic, rich aniseed and double apple.", "price": "1000", "image": null, "hidden": 0, "sort_order": 48, "insert_after": null, "badge": ""}, {"id": "ten11-049", "section": "shisha", "name": "Champagne Shisha", "description": "Any flavour, with champagne in the base for a lighter, softer cloud.", "price": "2500", "image": null, "hidden": 0, "sort_order": 49, "insert_after": null, "badge": "new"}, {"id": "ten11-050", "section": "shisha", "name": "Fruit Head Upgrade", "description": "Pineapple, grapefruit or melon bowl for any shisha.", "price": "400", "image": null, "hidden": 0, "sort_order": 50, "insert_after": null, "badge": ""}, {"id": "ten11-051", "section": "shisha", "name": "Fresh Coal Refresh", "description": "Complimentary with every shisha. Just ask.", "price": "", "image": null, "hidden": 0, "sort_order": 51, "insert_after": null, "badge": ""}, {"id": "ten11-001", "section": "signatures", "name": "Ten Past Eleven", "description": "Our house signature. Aged rum, smoked honey, black walnut bitters and a flamed orange zest, served over a single hand-carved ice sphere.", "price": "750", "image": null, "hidden": 0, "sort_order": 1, "insert_after": null, "badge": "popular"}, {"id": "ten11-002", "section": "signatures", "name": "Velvet Midnight", "description": "Premium vodka, crème de cassis, blackberry and lemon, crowned with a silken violet foam.", "price": "650", "image": null, "hidden": 0, "sort_order": 2, "insert_after": null, "badge": ""}, {"id": "ten11-003", "section": "signatures", "name": "The Gilded Rose", "description": "Botanical gin, lychee, rose water and a whisper of elderflower, finished with edible gold leaf.", "price": "700", "image": null, "hidden": 0, "sort_order": 3, "insert_after": null, "badge": "new"}, {"id": "ten11-004", "section": "signatures", "name": "Obsidian", "description": "Mezcal, activated charcoal, blood orange and chilli agave. Dark, smoky and unforgettable.", "price": "700", "image": null, "hidden": 0, "sort_order": 4, "insert_after": null, "badge": ""}, {"id": "ten11-005", "section": "signatures", "name": "Champagne Noir", "description": "Cognac, blackcurrant and bitters, topped with brut champagne in a chilled coupe.", "price": "900", "image": null, "hidden": 0, "sort_order": 5, "insert_after": null, "badge": "limited"}, {"id": "ten11-006", "section": "signatures", "name": "Sahara Silk", "description": "Spiced rum, passion fruit, vanilla bean and toasted coconut cream. Warm, exotic, effortless.", "price": "600", "image": null, "hidden": 0, "sort_order": 6, "insert_after": null, "badge": ""}, {"id": "ten11-007", "section": "signatures", "name": "The Diplomat", "description": "Bourbon, amaretto, fresh lemon and egg white, shaken to a velvet finish with a cherry garnish.", "price": "650", "image": null, "hidden": 0, "sort_order": 7, "insert_after": null, "badge": ""}, {"id": "ten11-008", "section": "signatures", "name": "Emerald Hour", "description": "Tequila blanco, cucumber, basil, lime and green chartreuse. Crisp, cool and quietly dangerous.", "price": "650", "image": null, "hidden": 0, "sort_order": 8, "insert_after": null, "badge": ""}, {"id": "ten11-032", "section": "spirits", "name": "Grey Goose", "description": "Glass 50ml · Bottle 70cl D4,500", "price": "400", "image": null, "hidden": 0, "sort_order": 32, "insert_after": null, "badge": ""}, {"id": "ten11-033", "section": "spirits", "name": "Belvedere", "description": "Glass 50ml · Bottle 70cl D5,000", "price": "450", "image": null, "hidden": 0, "sort_order": 33, "insert_after": null, "badge": ""}, {"id": "ten11-034", "section": "spirits", "name": "Cîroc", "description": "Glass 50ml · Bottle 70cl D4,500", "price": "400", "image": null, "hidden": 0, "sort_order": 34, "insert_after": null, "badge": ""}, {"id": "ten11-035", "section": "spirits", "name": "Hendrick's Gin", "description": "Glass 50ml · served with cucumber and premium tonic", "price": "450", "image": null, "hidden": 0, "sort_order": 35, "insert_after": null, "badge": ""}, {"id": "ten11-036", "section": "spirits", "name": "Tanqueray No. Ten", "description": "Glass 50ml · served with pink grapefruit and premium tonic", "price": "450", "image": null, "hidden": 0, "sort_order": 36, "insert_after": null, "badge": ""}, {"id": "ten11-037", "section": "spirits", "name": "Don Julio 1942", "description": "Glass 50ml · Bottle 70cl D16,000", "price": "1400", "image": null, "hidden": 0, "sort_order": 37, "insert_after": null, "badge": "popular"}, {"id": "ten11-038", "section": "spirits", "name": "Patrón Silver", "description": "Glass 50ml · Bottle 70cl D5,500", "price": "500", "image": null, "hidden": 0, "sort_order": 38, "insert_after": null, "badge": ""}, {"id": "ten11-039", "section": "spirits", "name": "Clase Azul Reposado", "description": "Glass 50ml · Bottle 70cl D22,000 · the hand-painted decanter", "price": "1800", "image": null, "hidden": 0, "sort_order": 39, "insert_after": null, "badge": ""}, {"id": "ten11-061", "section": "zero", "name": "Virgin Gilded Rose", "description": "Lychee, rose, elderflower and soda. All the glamour, none of the proof.", "price": "400", "image": null, "hidden": 0, "sort_order": 61, "insert_after": null, "badge": ""}, {"id": "ten11-062", "section": "zero", "name": "Passion Spritz", "description": "Passion fruit, lime, vanilla and sparkling water.", "price": "350", "image": null, "hidden": 0, "sort_order": 62, "insert_after": null, "badge": ""}, {"id": "ten11-063", "section": "zero", "name": "Baobab Cooler", "description": "Wonjo and baobab with fresh mint and ginger, served long over crushed ice.", "price": "350", "image": null, "hidden": 0, "sort_order": 63, "insert_after": null, "badge": ""}, {"id": "ten11-064", "section": "zero", "name": "Red Bull", "description": "Regular or sugar free.", "price": "250", "image": null, "hidden": 0, "sort_order": 64, "insert_after": null, "badge": ""}, {"id": "ten11-065", "section": "zero", "name": "Evian / San Pellegrino", "description": "Still or sparkling, 75cl.", "price": "300", "image": null, "hidden": 0, "sort_order": 65, "insert_after": null, "badge": ""}]};</script>
+<script>
+(() => {
+  // A static export (backend/export_static.py) bakes the menu into the page as
+  // window.MENU_SNAPSHOT and ships its files alongside, so no API is needed.
+  const SNAPSHOT = window.MENU_SNAPSHOT || null;
+  const API = SNAPSHOT ? '' : window.location.origin;
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  // This layout never registers the classic page's service worker; drop one left over from it.
+  navigator.serviceWorker?.getRegistrations?.().then((rs) => rs.forEach((r) => r.unregister())).catch(() => {});
+
+  const TAGS = { new: 'New', popular: 'House favourite', limited: 'Limited', chefs_pick: 'Recommended', coming_soon: 'Coming soon' };
+
+  // Same rule as the classic page: a bare number gets the currency prefix.
+  function formatPrice(raw) {
+    const p = String(raw ?? '').trim();
+    if (!p) return null;
+    if (/^[\d,]+$/.test(p)) return { text: 'D' + Number(p.replace(/,/g, '')).toLocaleString('en-US'), numeric: true };
+    return { text: p, numeric: false };
+  }
+
+  function applyTheme(theme) {
+    const v = theme?.variables || {};
+    const root = document.documentElement.style;
+    for (const k of ['--bg', '--bg-rgb', '--ink', '--ink-rgb', '--muted', '--accent', '--accent-rgb']) {
+      if (v[k]) root.setProperty(k, v[k]);
+    }
+    if (v['--bg']) document.querySelector('meta[name="theme-color"]').content = v['--bg'];
+    // Custom CSS (paid feature; the server sends it empty when the switch is off)
+    let custom = $('theme-custom-css');
+    if (!custom) { custom = Object.assign(document.createElement('style'), { id: 'theme-custom-css' }); document.head.appendChild(custom); }
+    custom.textContent = theme?.custom_css || '';
+  }
+
+  // Live preview from the dashboard's theme picker (same message as the classic page)
+  window.addEventListener('message', (e) => {
+    if (e.origin === location.origin && e.data?.type === 'restorano:theme') applyTheme(e.data.theme);
+  });
+
+  function renderHeader(site) {
+    const s = site.settings || {};
+    const name = site.restaurant?.name || 'Menu';
+    document.title = `${name} · Menu`;
+    if (s.logo) document.head.appendChild(Object.assign(document.createElement('link'), { rel: 'icon', href: API + s.logo }));
+    $('brand').innerHTML = s.logo
+      ? `<img class="logo" src="${esc(API + s.logo)}" alt="${esc(name)}">`
+      : `<h1 class="wordmark">${esc(name)}</h1>`;
+    $('tagline').textContent = s.cover_tagline || '';
+    $('hours').textContent = s.hours_open && s.hours_close ? `Open nightly  ${s.hours_open} – ${s.hours_close}` : '';
+  }
+
+  function renderFooter(site) {
+    const s = site.settings || {};
+    const links = [];
+    if (s.phone) links.push(`<a href="tel:${esc(s.phone.replace(/\s/g, ''))}">${esc(s.phone)}</a>`);
+    if (s.whatsapp) links.push(`<a href="https://wa.me/${esc(s.whatsapp.replace(/\D/g, ''))}" target="_blank" rel="noopener">WhatsApp</a>`);
+    if (s.instagram) links.push(`<a href="${esc(s.instagram.startsWith('http') ? s.instagram : 'https://instagram.com/' + s.instagram.replace(/^@/, ''))}" target="_blank" rel="noopener">Instagram</a>`);
+    if (s.maps_url) links.push(`<a href="${esc(s.maps_url)}" target="_blank" rel="noopener">Find us</a>`);
+    const branding = site.features?.hide_branding ? '' : '<p class="credit">Menu by <a href="https://restorano.store" target="_blank" rel="noopener">Restorano</a></p>';
+    $('footer').innerHTML =
+      (s.about_description ? `<p class="about">${esc(s.about_description)}</p>` : '') +
+      (links.length ? `<div class="contact">${links.join('')}</div>` : '') + branding;
+  }
+
+  function itemHtml(it) {
+    const soon = it.badge === 'coming_soon';
+    const price = soon ? null : formatPrice(it.price);
+    const tag = TAGS[it.badge];
+    return `
+      <article class="item${soon ? ' soon' : ''}" data-search="${esc((it.name + ' ' + (it.description || '')).toLowerCase())}">
+        ${it.image ? `<img class="item-thumb" src="${esc(it.image)}" alt="" loading="lazy">` : ''}
+        <div class="item-body">
+          <div class="line">
+            <span class="name">${esc(it.name)}</span>
+            ${price ? `<span class="leader"></span><span class="price${price.numeric ? '' : ' text'}">${esc(price.text)}</span>` : ''}
+          </div>
+          ${it.description ? `<p class="desc">${esc(it.description)}</p>` : ''}
+          ${tag ? `<span class="tag">${tag}</span>` : ''}
+        </div>
+      </article>`;
+  }
+
+  function renderMenu(sections, items) {
+    const bySection = {};
+    for (const it of items) if (!it.hidden) (bySection[it.section] ||= []).push(it);
+    const shown = sections.filter((s) => bySection[s.key]?.length);
+    if (!shown.length) { $('menu').innerHTML = '<p class="empty">The menu is being prepared.</p>'; return; }
+
+    $('cats').innerHTML = shown.map((s) => `<a href="#s-${esc(s.key)}" data-key="${esc(s.key)}">${esc(s.label)}</a>`).join('');
+    $('menu').innerHTML = shown.map((s, i) => `
+      <section class="section reveal" id="s-${esc(s.key)}" data-key="${esc(s.key)}">
+        <div class="section-head">
+          <span class="section-no">${String(i + 1).padStart(2, '0')}</span>
+          <h2 class="section-title">${esc(s.label)}</h2>
+        </div>
+        ${bySection[s.key].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)).map(itemHtml).join('')}
+      </section>`).join('');
+
+    // Reveal sections as they scroll in
+    const io = new IntersectionObserver((es) => es.forEach((e) => {
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+    }), { rootMargin: '0px 0px -8% 0px' });
+    document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+
+    // Highlight the section being read, and keep its tab in view
+    const links = [...document.querySelectorAll('.cats a')];
+    const setActive = (key) => links.forEach((a) => {
+      const on = a.dataset.key === key;
+      if (on && !a.classList.contains('active')) a.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+      a.classList.toggle('active', on);
+    });
+    const spy = () => {
+      const line = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--bar-h'), 10) + 24;
+      let current = shown[0].key;
+      for (const sec of document.querySelectorAll('.section')) {
+        if (sec.style.display !== 'none' && sec.getBoundingClientRect().top <= line) current = sec.dataset.key;
+      }
+      setActive(current);
+    };
+    let ticking = false;
+    window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(() => { spy(); ticking = false; }); } }, { passive: true });
+    spy();
+  }
+
+  function setupSearch() {
+    const btn = $('searchBtn'), box = $('search'), q = $('q');
+    btn.addEventListener('click', () => {
+      const open = !box.classList.contains('open');
+      box.classList.toggle('open', open);
+      btn.setAttribute('aria-expanded', String(open));
+      if (open) q.focus(); else { q.value = ''; filter(''); }
+    });
+    q.addEventListener('input', () => {
+      filter(q.value);
+      // Results can sit above the reader; bring the top of the list into view
+      const top = $('menu').getBoundingClientRect().top + window.scrollY - 120;
+      if (window.scrollY > top) window.scrollTo({ top, behavior: 'auto' });
+    });
+    function filter(term) {
+      const t = term.trim().toLowerCase();
+      let any = false;
+      document.querySelectorAll('.section').forEach((sec) => {
+        let hits = 0;
+        sec.querySelectorAll('.item').forEach((it) => {
+          const hit = !t || it.dataset.search.includes(t);
+          it.style.display = hit ? '' : 'none';
+          if (hit) hits++;
+        });
+        sec.style.display = hits ? '' : 'none';
+        if (hits) { any = true; sec.classList.add('in'); }
+      });
+      let none = $('noHits');
+      if (!any && !none) {
+        none = Object.assign(document.createElement('p'), { id: 'noHits', className: 'empty' });
+        $('menu').appendChild(none);
+      }
+      if (none) { none.textContent = any ? '' : `Nothing matches “${term}”.`; none.style.display = any ? 'none' : ''; }
+    }
+  }
+
+  async function load() {
+    try {
+      const [site, sections, items] = SNAPSHOT
+        ? [SNAPSHOT.site, SNAPSHOT.sections, SNAPSHOT.menu]
+        : await Promise.all(
+            ['/api/site', '/api/sections', '/api/menu'].map((p) => fetch(API + p).then((r) => { if (!r.ok) throw r; return r.json(); }))
+          );
+      applyTheme(site.theme);
+      renderHeader(site);
+      renderMenu(sections, items);
+      renderFooter(site);
+      setupSearch();
+    } catch (e) {
+      $('menu').innerHTML = e?.status === 403
+        ? '<p class="empty">This menu is currently unavailable.</p>'
+        : '<p class="empty">The menu could not be loaded. Please refresh.</p>';
+    }
+  }
+  load();
+})();
+</script>
+</body>
+</html>
